@@ -33,7 +33,7 @@ function connectToMysql() {
     connectionLimit : 100,
     host            : "localhost",
     user            : "root",
-    password        : "Hitesh@1",
+    password        : "ansh21",
     database        : "todoapp_dockabl",
     debug           : false
   });
