@@ -57,15 +57,3 @@ function connectToMysql() {
 
 connectToMysql();
 
-// https://8080-dot-3002483-dot-devshell.appspot.com/
-//
-// var server = http.createServer(function(req, res) {
-//   console.log("a user hits ther server username : " + req.param.length);
-//   res.writeHead(200, {"Content-Type": "application/json"});
-//   res.end(JSON.stringify({"text": "Hello world from Hitman"}));
-// });
-// const PORT = 3000;
-// server.listen(PORT, function() {
-//   console.log("App listening on port : " + PORT);
-//   console.log("Press Ctrl + C to stop server");
-// });
