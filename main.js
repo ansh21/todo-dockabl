@@ -37,9 +37,9 @@ function setupExpress(connection) {
 function connectToMysql() {
   var pool = mysql.createPool({
     connectionLimit : 100,
-    host            : "35.188.164.126",
+    host            : "DBHOST",
     user            : "root",
-    password        : "anshul1234",
+    password        : "PASSWORD",
     database        : "todoapp_dockabl",
     debug           : false
   });
