@@ -11,8 +11,14 @@ var log = function(msg) {
 }
 
 function startServer() {
-  app.listen(3000, function() {
-    log("server started at port 3000.");
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, function() {
+    console.log(`App listening on port ${PORT}`);
+    console.log('Press Ctrl+C to quit.');
+  });
+
+  app.get("/", function(req, res) {
+    res.json({"text": "slash has been hit"})
   });
 }
 
@@ -31,9 +37,9 @@ function setupExpress(connection) {
 function connectToMysql() {
   var pool = mysql.createPool({
     connectionLimit : 100,
-    host            : "localhost",
+    host            : "35.188.164.126",
     user            : "root",
-    password        : "Hitesh@1",
+    password        : "anshul1234",
     database        : "todoapp_dockabl",
     debug           : false
   });
@@ -43,6 +49,7 @@ function connectToMysql() {
       log("unable to get connection from mysql connection pool. err : " + err);
       process.exit(1);
     } else {
+      log("connected to cloudSQL.")
       setupExpress(connection);
     }
   });
@@ -50,26 +57,15 @@ function connectToMysql() {
 
 connectToMysql();
 
-// var connection = mysql.createConnection({
-//   host     : 'localhost',
-//   user     : 'root',
-//   password : 'Hitesh@1',
-//   database : 'todoapp_dockabl'
+// https://8080-dot-3002483-dot-devshell.appspot.com/
+//
+// var server = http.createServer(function(req, res) {
+//   console.log("a user hits ther server username : " + req.param.length);
+//   res.writeHead(200, {"Content-Type": "application/json"});
+//   res.end(JSON.stringify({"text": "Hello world from Hitman"}));
 // });
-// try {
-// 	connection.connect();
-//
-// } catch(e) {
-// 	console.log('Database Connection failed:' + e);
-// }
-
-// var fun2 = function() {
-//   log("test log fun2");
-// }
-//
-// var fun1 = function() {
-//   log("test log fun1");
-//   fun2();
-// }
-//
-// fun1();
+// const PORT = 3000;
+// server.listen(PORT, function() {
+//   console.log("App listening on port : " + PORT);
+//   console.log("Press Ctrl + C to stop server");
+// });
