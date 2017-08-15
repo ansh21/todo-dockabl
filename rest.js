@@ -5,12 +5,86 @@ function restRouter(router, connection) {
   handleApiRequests(router, connection);
 }
 
-function sendJson(response, text) {
-  console.log(text);
+// function sendJson(response, text) {
+//   console.log(text);
+//   response.json({
+//     "response_type": "in_channel",
+//     "username": "TODO Bot",
+//     "text": text
+//   });
+// }
+
+function sendAllTodosJson(response, headerText, text) {
+  console.log("Message: " + text);
   response.json({
     "response_type": "in_channel",
     "username": "TODO Bot",
-    "text": text
+    "text": "_" + headerText + "_",
+    "attachments": [
+      {
+        "color": "good",
+        "mrkdwn_in": [
+          "text",
+          "pretext"
+        ],
+        "text": text
+      }
+    ]
+  });
+}
+
+function sendSuccessJson(response, headerText, text) {
+  console.log("Success message: " + text);
+  response.json({
+    "response_type": "in_channel",
+    "username": "TODO Bot",
+    "text": "_" + headerText + "_",
+    "attachments": [
+      {
+        "color": "good",
+        "mrkdwn_in": [
+          "text",
+          "pretext"
+        ],
+        "text": "*" + text + "*"
+      }
+    ]
+  });
+}
+
+function sendErrorJson(response, errorText) {
+  console.log("error: " + errorText);
+  response.json({
+    "response_type": "in_channel",
+    "username": "TODO Bot",
+    "attachments": [
+      {
+        "color": "danger",
+        "mrkdwn_in": [
+          "text",
+          "pretext"
+        ],
+        "text": "_" + errorText + "_"
+      }
+    ]
+  });
+}
+
+function sendWarningJson(response, warningText) {
+  console.log("warning: " + warningText);
+  response.json({
+    "response_type": "in_channel",
+    "username": "TODO Bot",
+    "attachments": [
+      {
+        "color": "warning",
+        "mrkdwn_in": [
+          "text",
+          "pretext"
+        ],
+        "text": "_"  + warningText + "_"
+      }
+    ]
   });
 }
 
@@ -31,7 +105,7 @@ function handleApiRequests(router, connection) {
     console.log("user_name: " + req.body.user_name);
     var taskDescription = req.body.text;
     if(taskDescription === undefined || taskDescription === "") {
-      sendJson(res, "Please define a task to add to TODO list");
+      sendErrorJson(res, "Please define a TODO to add");
       return;
     }
     var channelPostedIn = req.body.channel_id;
@@ -53,6 +127,7 @@ function handleApiRequests(router, connection) {
     connection.query(countQuery, function(err, result) {
       if(err) {
         console.log(err);
+        sendErrorJson(res, "Sorry!! unable to add TODO");
       } else {
         if(result.length === 0) {
           var query = "INSERT INTO ??(??,??,??,??,??) VALUES (?,?,?,?,?)";
@@ -63,9 +138,9 @@ function handleApiRequests(router, connection) {
           console.log(query);
           connection.query(query, function(err, rows) {
             if(err) {
-              sendJson(res, "Sorry!! unable to add TODO");
+              sendErrorJson(res, "Sorry!! unable to add TODO");
             } else {
-              sendJson(res, "Added TODO for \""+ taskDescription + "\"");
+              sendSuccessJson(res, "TODO added", taskDescription);
             }
           });
         } else {
@@ -77,13 +152,13 @@ function handleApiRequests(router, connection) {
             console.log(updateStatusQuery);
             connection.query(updateStatusQuery, function(err, rows) {
               if(err) {
-                sendJson(res, "Sorry!! unable to add TODO");
+                sendErrorJson(res, "Sorry!! unable to add TODO");
               } else {
-                sendJson(res, "Added TODO for \""+ taskDescription + "\"");
+                sendSuccessJson(res, "TODO added", taskDescription);
               }
             });
           } else {
-            sendJson(res, "TODO already added");
+            sendWarningJson(res, "TODO already added");
           }
         }
       }
@@ -100,19 +175,19 @@ function handleApiRequests(router, connection) {
     connection.query(query, function(err,rows) {
       if(err) {
         console.log(err);
-        sendJson(res, "Sorry!! unable to retrieve all TODOs from our database");
+        sendErrorJson(res, "Sorry!! unable to retrieve all TODOs from our database");
       } else {
         //If row count == 0, then show "No TODOs"
         if(rows.length === 0) {
-          sendJson(res, "No TODOs");
+          sendWarningJson(res, "No TODOs");
         } else {
           //else show all the tasks.
           console.log("todos : " + JSON.stringify(rows));
           var text = "";
           for(i = 0; i < rows.length; ++i) {
-            text += "- " + rows[i].task_description + "\n";
+            text += "*- " + rows[i].task_description + "*\n";
           }
-          sendJson(res, text);
+          sendAllTodosJson(res, "TODO list", text);
         }
       }
     });
@@ -124,7 +199,7 @@ function handleApiRequests(router, connection) {
     var taskDescription = req.body.text;
     var channelPostedIn = req.body.channel_id;
     if(taskDescription === undefined || taskDescription === "") {
-      sendJson(res, "TODO is not defined");
+      sendErrorJson(res, "Please define a TODO to mark");
       return;
     }
     var checkStatusQuery = "SELECT * FROM ?? WHERE ??=? AND ??=? AND ??=?";
@@ -134,26 +209,25 @@ function handleApiRequests(router, connection) {
     console.log(checkStatusQuery);
     connection.query(checkStatusQuery, function(err, rows) {
       if(err) {
-        sendJson(res, "Sorry!! unable to remove TODO");
+        sendErrorJson(res, "Sorry!! unable to remove TODO");
       } else {
         //if there is any task with status == 1, then this task has been completed.
         if(rows.length > 0) {
-	  var query = "UPDATE ?? SET ?? = ? WHERE ?? = ?";
-    	  var table = ["tasks", "status", "1", "task_description", taskDescription];
-   	  query = mysql.format(query,table);
-    	  console.log(query);
-   	  connection.query(query, function(err, rows) {
-      	  if(err) {
-           sendJson(res, "Sorry!! unable to remove TODO");
-          } else {
-           sendJson(res, "Removed TODO for \"" + taskDescription + "\"");
+          var query = "UPDATE ?? SET ?? = ? WHERE ?? = ?";
+    	    var table = ["tasks", "status", "1", "task_description", taskDescription];
+   	      query = mysql.format(query,table);
+    	    console.log(query);
+   	      connection.query(query, function(err, rows) {
+            if(err) {
+              sendErrorJson(res, "Sorry!! unable to remove TODO");
+            } else {
+              sendSuccessJson(res, "Removed TODO", taskDescription);
+            }
+          });
+        } else {
+          sendWarningJson(res, "No such TODO found in our database");
+          return;
         }
-      });
-        //  sendJson(res, "No such TODO found in our database");
-        //  return;
-        }else{
-          sendJson(res, "No such TODO found in our database");
-          return;}
       }
     });
   });
